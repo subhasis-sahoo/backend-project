@@ -12,3 +12,10 @@ const connectDB = async() => {
 }
 
 export default connectDB;
+
+
+/*
+NOTES: While connecting database remember two things,
+i-> There is always may some error occur while connecting database.
+ii-> Database takes a lot of time to connect, so always use async and await.
+*/
