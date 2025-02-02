@@ -1,5 +1,5 @@
 // require('dotenv').config({path: './env'});
-import express from "express"
+// import express from "express"
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
 
@@ -7,7 +7,9 @@ dotenv.config({
     path: './env'
 })
 
-const app = express()
+// const app = express()
+// import app from "./app.js";
+import { app } from "./app.js"
 const port = process.env.PORT || 8000
 
 connectDB()
