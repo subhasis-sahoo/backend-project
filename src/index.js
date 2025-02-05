@@ -1,15 +1,13 @@
-// require('dotenv').config({path: './env'});
-// import express from "express"
+// require('dotenv').config({path: './env'}); // common.js syntax to configure dotenv file
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
+import { app } from "./app.js"
 
 dotenv.config({
     path: './env'
 })
 
-// const app = express()
-// import app from "./app.js";
-import { app } from "./app.js"
+// assign the port value into a variable with a default value
 const port = process.env.PORT || 8000
 
 connectDB()
