@@ -28,7 +28,7 @@ const registerUser = asyncHandler( async(req, res) => {
     }
 
     // check if user already exists using email and username
-    const exitstedUser = User.findOne({
+    const exitstedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
     // console.log(exitstedUser)
@@ -38,8 +38,19 @@ const registerUser = asyncHandler( async(req, res) => {
     }
 
     // check for images and check for avatar
-    const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    // As we create coverImage field not required while user registration so if a user don't give cover iamge then our application works perporly but the below line create error if coverImage not provided, so we have to manage it in our traditional if-else way.
+    // const avatarLocalPath = req.files?.avatar[0]?.path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    let avatarLocalPath;
+    if(req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
+        avatarLocalPath = req.files.avatar[0].path
+    }
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+
     // console.log(req.files)
 
     if(!avatarLocalPath) {
@@ -47,6 +58,7 @@ const registerUser = asyncHandler( async(req, res) => {
     }
 
     // upload them on cloudinary, check avatar
+    // Here we can do one more thing if coverImageLocalpath is not null then only we upload it to cloudinary else not.
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
