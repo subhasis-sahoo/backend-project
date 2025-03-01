@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResonse.js"
 import jwt from "jsonwebtoken"
 import { Mongoose } from "mongoose"
+import { v2 as cloudinary } from "cloudinary"
 
 
 // generate access and refresh token
@@ -208,7 +209,8 @@ const refreshAccessToken = asyncHandler(async(req, res) => {
     try {
         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
     
-        const user = await User.findOne(decodedToken?._id)
+        // console.log(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id)
         if(!user) {
             throw new ApiError(401, "Invalid refresh token")
         }
@@ -217,7 +219,7 @@ const refreshAccessToken = asyncHandler(async(req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
+        const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
     
         const options = {
             httpOnly: true,
@@ -227,11 +229,11 @@ const refreshAccessToken = asyncHandler(async(req, res) => {
         return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(
                 200,
-                {accessToken, refreshToken: newRefreshToken},
+                {accessToken, refreshToken},
                 "Access token refreshed"
             )
         )
@@ -276,7 +278,7 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(
-        req?._id,
+        req.user?._id,
         {
             $set: {
                 email,
@@ -306,6 +308,10 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Error while uploading avatar on cloudinary")
     }
 
+    // getinng the old avatar image
+    const avatarPublicId = req.user?.avatar?.split("/").pop().split(".")[0]
+    // console.log(avatarPublicId)
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -319,6 +325,9 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     ).select("-password -refreshtoken")
 
     // delete old avatar 
+    cloudinary.uploader
+    .destroy(avatarPublicId, {resource_type: 'image'})
+    .then(console.log("old avatar image deleted successfully"))
 
 
     return res
@@ -339,6 +348,10 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Error while uploading cover image on cloudinary")
     }
 
+    // getinng the old cover image image
+    const coverImagePublicId = req.user?.coverImage?.split("/").pop().split(".")[0]
+    // console.log(coverImagePublicId)
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -352,6 +365,9 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     ).select("-password -refreshtoken")
 
     // delete old cover image
+    cloudinary.uploader
+    .destroy(coverImagePublicId, {resource_type: 'image'})
+    .then(console.log("old cover image deleted successfully"))
 
     return res
     .status(200)
